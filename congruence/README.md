@@ -16,8 +16,8 @@ instance, when one knows <code>a = b</code> and <code>b = c</code>, then
 another. By exhaustively deriving all equalities from a small collection, one
 finds a simple, but rich, structure called an _equivalence closure_.
 
-Any self-repsecting language will contain, in addition to variables, function
-symbols. A function symbol has an arity, the number of parameters that it
+Most useful languages contain function symbols in addition to variables and
+constants. A function symbol has an arity, the number of parameters that it
 accepts. With function symbols one can write interesting equalities such as
 <code>a+b = 4</code> and <code>f(f(a)) = f(a)</code>. The collection of all
 possible equalities from some set of equalities is called a _congruence closure_.
