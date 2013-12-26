@@ -326,6 +326,119 @@ namespace dimitri {
 
 
 
+  // -------------------------- //
+  // --- Congruence Closure --- //
+  // -------------------------- //
+
+  template <
+    typename Expr,
+    typename Args,
+    typename Same_symbol,
+    typename Num_args
+  >
+    congruence_t<Expr,Args,Same_symbol,Num_args>::congruence_t (
+      const Args& args, const Same_symbol& is_same_symbol,
+      const Num_args& num_args)
+      : args(args), is_same_symbol(is_same_symbol), num_args(num_args)
+    { }
+
+  template <
+    typename Expr,
+    typename Args,
+    typename Same_symbol,
+    typename Num_args
+  >
+    bool congruence_t<Expr,Args,Same_symbol,Num_args>::is_congruent (
+      expr_t e1, expr_t e2)
+    {
+      // Can optimize by just looking for the first incongruence.
+      // To this I say: Meh.
+      return report_differences(e1,e2).empty();
+    }
+
+  template <
+    typename Expr,
+    typename Args,
+    typename Same_symbol,
+    typename Num_args
+  >
+    auto congruence_t<Expr,Args,Same_symbol,Num_args>::report_differences
+    (expr_t e1, expr_t e2) -> std::vector<expr_pair_t>
+    {
+      auto diffs = differences(e1,e2);
+      auto i = std::remove_if(begin(diffs), end(diffs),
+        [this](expr_pair_t e) { return this->not_directly_congruent(e); });
+      diffs.erase(i,diffs.end());
+      return diffs;
+    }
+
+  template <
+    typename Expr,
+    typename Args,
+    typename Same_symbol,
+    typename Num_args
+  >
+    void congruence_t<Expr,Args,Same_symbol,Num_args>::set_congruent
+      (expr_t e1, expr_t e2)
+    {
+      auto diffs = differences(e1,e2);
+      for (auto e: diffs) {
+        size_t c1 = get_or_gen_canonical(e.first);
+        size_t c2 = get_or_gen_canonical(e.second);
+        // oi. I really need a permission based type system.
+        if (!sets.in_same_set(c1,c2))
+          sets.union_sets(c1,c2);
+      }
+    }
+
+  template <
+    typename Expr,
+    typename Args,
+    typename Same_symbol,
+    typename Num_args
+  >
+    auto congruence_t<Expr,Args,Same_symbol,Num_args>::differences
+    (expr_t e1, expr_t e2) -> std::vector<expr_pair_t>
+    {
+      using expr_trav = expr_traversal<Expr,Args,Same_symbol,Num_args>;
+      return expr_trav(args,is_same_symbol,num_args).traverse(e1,e2);
+    }
+
+  template <
+    typename Expr,
+    typename Args,
+    typename Same_symbol,
+    typename Num_args
+  >
+    size_t congruence_t<Expr,Args,Same_symbol,Num_args>::get_or_gen_canonical
+      (expr_t e1)
+    {
+      maybe<size_t> c = reps.get(e1);
+      if (c.is_just)
+        return c.val;
+      size_t fresh_var = sets.fresh_variable();
+      reps.set(e1,fresh_var);
+      return fresh_var;
+    }
+
+  template <
+    typename Expr,
+    typename Args,
+    typename Same_symbol,
+    typename Num_args
+  >
+    bool congruence_t<Expr,Args,Same_symbol,Num_args>::not_directly_congruent
+      (expr_pair_t e)
+    {
+      maybe<size_t> c1 = reps.get(e.first);
+      maybe<size_t> c2 = reps.get(e.second);
+      if (c1.is_just and c2.is_just)
+        return sets.in_same_set(c1.val,c2.val);
+      return false;
+    }
+
+
+
 }
 
 
