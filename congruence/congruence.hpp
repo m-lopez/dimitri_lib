@@ -94,7 +94,6 @@ namespace dimitri {
   template <typename E>
     struct canonical_map_t
     {
-      // using size_t = std::size_t;
       using expr_t = E;
       using size_t = std::size_t;
 
@@ -114,25 +113,23 @@ namespace dimitri {
   // ---------------------------- //
   // Ad-hoc expression traverser
   template <
-    typename E,
+    typename Expr,
     typename Args,
-    typename Same_node,
+    typename Same_symbol,
     typename Num_args
   >
     struct expr_traversal {
-      using expr_t = E;
+      using expr_t = Expr;
       using expr_pair_t = std::pair<expr_t,expr_t>;
 
-      expr_traversal (
-        std::vector<std::pair<expr_t,expr_t>>&, const Args&, const Same_node&,
-        const Num_args&);
-      void traverse (expr_t e1, expr_t e2);
+      expr_traversal (const Args&, const Same_symbol&, const Num_args&);
+      std::vector<expr_pair_t> traverse (expr_t e1, expr_t e2);
 
       // The differences between the expressions
-      std::vector<expr_pair_t>& expr_pairs;
+      std::vector<expr_pair_t> expr_pairs;
 
       Args args;
-      Same_node is_same_node;
+      Same_symbol is_same_symbol;
       Num_args num_args;
     };
 
@@ -162,7 +159,7 @@ namespace dimitri {
       using size_t = std::size_t;
 
       congruence_t (
-        const Args& = Arg(), const Same_symbol& = Same_symbol(),
+        const Args& = Args(), const Same_symbol& = Same_symbol(),
         const Num_args& = Num_args());
 
       // Congruence Interface
@@ -245,7 +242,7 @@ namespace dimitri {
   }
 
   // -- return a fresh variable
-  size_t union_find_t::new_free_variable ()
+  size_t union_find_t::fresh_variable ()
   {
     size_t var = parent.size();
     parent.push_back(var);
@@ -261,6 +258,71 @@ namespace dimitri {
       parent_of_n = parent[n]; }
     return n;
   }
+
+
+
+  // ------------------------------ //
+  // --- Canonical Element maps --- //
+  // ------------------------------ //
+
+  template <typename Expr>
+    canonical_map_t<Expr>::canonical_map_t ()
+      : representatives()
+    { }
+
+  template <typename Expr>
+    maybe<size_t> canonical_map_t<Expr>::get (expr_t e)
+    {
+      auto i = representatives.find(e);
+      if (representatives.end() == i)
+        return maybe<size_t>();
+      return maybe<size_t>(i->second);
+    }
+
+  template <typename Expr>
+    void canonical_map_t<Expr>::set (expr_t e, size_t rep)
+    {
+      representatives.insert(std::make_pair(e,rep));
+    }
+
+
+
+  // ---------------------------- //
+  // --- Expression Traversal --- //
+  // ---------------------------- //
+
+  template <
+    typename Expr,
+    typename Args,
+    typename Same_symbol,
+    typename Num_args
+  >
+  expr_traversal<Expr, Args, Same_symbol, Num_args>::expr_traversal (
+      const Args& args, const Same_symbol& is_same_symbol,
+      const Num_args& num_args)
+      : args(args), is_same_symbol(is_same_symbol), num_args(num_args)
+    { }
+
+  template <
+    typename Expr,
+    typename Args,
+    typename Same_symbol,
+    typename Num_args
+  >
+    auto
+    expr_traversal<Expr, Args, Same_symbol, Num_args>::traverse
+      (expr_t e1, expr_t e2) -> std::vector<expr_pair_t>
+    {
+      std::vector<expr_pair_t> diffs;
+      if (!is_same_symbol(e1,e2))
+        diffs.push_back(std::make_pair(e1,e2));
+      else {
+        auto e1_args = begin(args(e1));
+        auto e2_args = begin(args(e2));
+        for (size_t n = 0; n < num_args(e1); ++n, ++e1_args, ++e2_args)
+          traverse(*e1_args,*e2_args); }
+      return diffs;
+    }
 
 
 
