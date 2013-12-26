@@ -109,12 +109,45 @@ namespace dimitri {
 
 
 
+  // ---------------------------- //
+  // --- Expression Traversal --- //
+  // ---------------------------- //
+  // Ad-hoc expression traverser
+  template <
+    typename E,
+    typename Args,
+    typename Same_node,
+    typename Num_args
+  >
+    struct expr_traversal {
+      using expr_t = E;
+      using expr_pair_t = std::pair<expr_t,expr_t>;
+
+      expr_traversal (
+        std::vector<std::pair<expr_t,expr_t>>&, const Args&, const Same_node&,
+        const Num_args&);
+      void traverse (expr_t e1, expr_t e2);
+
+      // The differences between the expressions
+      std::vector<expr_pair_t>& expr_pairs;
+
+      Args args;
+      Same_node is_same_node;
+      Num_args num_args;
+    };
+
+
+
   // -------------------------- //
   // --- Congruence closure --- //
   // -------------------------- //
   // This data structure computes and maintains a congruence closure over some
   // expression type Expr. The requirements on the expression language are
   // enumerated in the README.md file.
+  // NOTE is there a way to remove the num args requirement? If Args is a
+  // function that returns a random access iterator range, then Num args is not
+  // necessary. However, as with GCC, this is not always the case. Hmm. I think
+  // it can go. Must confer with brain.
 
   template <
     typename Expr,
