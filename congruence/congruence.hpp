@@ -57,6 +57,8 @@ namespace dimitri {
   // ------------------ //
   // --- Union Find --- //
   // ------------------ //
+  // The mighty union find data structure (or a simpler version of it). This
+  // data structure maintains a partition of the integers [0,parent.size()).
 
   struct union_find_t {
     using size_t = std::size_t;
@@ -67,11 +69,11 @@ namespace dimitri {
     union_find_t (const union_find_t&);
 
     // -- Set algebra
-    bool same_set (size_t, size_t);
+    bool in_same_set (size_t, size_t);
     void union_sets (size_t, size_t);
 
-    // -- Get the next free variable
-    size_t new_free_variable ();
+    // -- Get a fresh variable
+    size_t fresh_variable ();
 
     //  -- Parent mapping
     std::vector<size_t> parent;
@@ -83,8 +85,11 @@ namespace dimitri {
 
 
   // ------------------------------ //
-  // --- Canonical Element maps --- //
+  // --- Canonical element maps --- //
   // ------------------------------ //
+  // This data structure simply maintatins a mapping from expressions to
+  // integers in the partition. It glues the expression language to the
+  // union_find_t type.
 
   template <typename E>
     struct canonical_map_t
@@ -101,6 +106,12 @@ namespace dimitri {
       // -- Representative elements
       std::map<expr_t,size_t> representatives;
     };
+
+
+
+//// ----------------------------------------------------------------------- ////
+//// ----- implementation details ------------------------------------------ ////
+//// ----------------------------------------------------------------------- ////
 
 }
 
