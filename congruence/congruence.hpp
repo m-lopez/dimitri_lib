@@ -109,6 +109,51 @@ namespace dimitri {
 
 
 
+  // -------------------------- //
+  // --- Congruence closure --- //
+  // -------------------------- //
+  // This data structure computes and maintains a congruence closure over some
+  // expression type Expr. The requirements on the expression language are
+  // enumerated in the README.md file.
+
+  template <
+    typename Expr,
+    typename Args,
+    typename Same_symbol,
+    typename Num_args
+  >
+    struct congruence_t {
+
+      using expr_t = Expr;
+      using expr_pair_t = std::pair<expr_t,expr_t>;
+      using size_t = std::size_t;
+
+      congruence_t (
+        const Args& = Arg(), const Same_symbol& = Same_symbol(),
+        const Num_args& = Num_args());
+
+      // Congruence Interface
+      bool is_congruent (expr_t, expr_t);
+      std::vector<expr_pair_t> report_differences (expr_t, expr_t);
+      void set_congruent (expr_t, expr_t);
+
+      // Expression algebra
+      Args args;
+      Same_symbol is_same_symbol;
+      Num_args num_args;
+
+      // Auxiliary data structures
+      canonical_map_t<expr_t> reps;
+      union_find_t sets;
+
+      // Congruence algebra
+      std::vector<expr_pair_t> differences (expr_t, expr_t);
+      size_t get_or_gen_canonical (expr_t);
+      bool not_directly_congruent (expr_pair_t);
+    };
+
+
+
 //// ----------------------------------------------------------------------- ////
 //// ----- implementation details ------------------------------------------ ////
 //// ----------------------------------------------------------------------- ////
@@ -183,6 +228,9 @@ namespace dimitri {
       parent_of_n = parent[n]; }
     return n;
   }
+
+
+
 }
 
 
