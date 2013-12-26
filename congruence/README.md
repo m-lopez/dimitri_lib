@@ -63,8 +63,6 @@ _Abstract Congruence Closure_ by Bachmair, Tiwari, and Vigneron.
 todo
 ----
 
-+   proper copy/move semantics - implement copy and move constructors for the
-      data types
 +   break <code>maybe</code> off into its own library. Describe differences
       between <code>maybe</code> and <code>optional</code>
 +   scoped congruence closure - for those of us in programming languages, symbols

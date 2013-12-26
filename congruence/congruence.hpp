@@ -98,6 +98,8 @@ namespace dimitri {
       using size_t = std::size_t;
 
       canonical_map_t ();
+      canonical_map_t (const canonical_map_t&);
+      canonical_map_t (canonical_map_t&&);
 
       maybe<size_t> get (expr_t);
       void set (expr_t, size_t);
@@ -161,6 +163,8 @@ namespace dimitri {
       congruence_t (
         const Args& = Args(), const Same_symbol& = Same_symbol(),
         const Num_args& = Num_args());
+      congruence_t (const congruence_t&);
+      congruence_t (congruence_t&&);
 
       // Congruence Interface
       bool is_congruent (expr_t, expr_t);
@@ -271,6 +275,16 @@ namespace dimitri {
     { }
 
   template <typename Expr>
+    canonical_map_t<Expr>::canonical_map_t (const canonical_map_t& x)
+      : representatives(x.representatives)
+    { }
+
+  template <typename Expr>
+    canonical_map_t<Expr>::canonical_map_t (canonical_map_t&& x)
+      : representatives(x.representatives)
+    { }
+
+  template <typename Expr>
     maybe<size_t> canonical_map_t<Expr>::get (expr_t e)
     {
       auto i = representatives.find(e);
@@ -340,6 +354,27 @@ namespace dimitri {
       const Args& args, const Same_symbol& is_same_symbol,
       const Num_args& num_args)
       : args(args), is_same_symbol(is_same_symbol), num_args(num_args)
+    { }
+
+  template <
+    typename Expr,
+    typename Args,
+    typename Same_symbol,
+    typename Num_args
+  >
+    congruence_t<Expr,Args,Same_symbol,Num_args>::congruence_t (
+        const congruence_t& c)
+      : args(c.args), is_same_symbol(c.is_same_symbol), num_args(c.num_args)
+    { }
+
+  template <
+    typename Expr,
+    typename Args,
+    typename Same_symbol,
+    typename Num_args
+  >
+    congruence_t<Expr,Args,Same_symbol,Num_args>::congruence_t (congruence_t&& c)
+      : args(c.args), is_same_symbol(c.is_same_symbol), num_args(c.num_args)
     { }
 
   template <
