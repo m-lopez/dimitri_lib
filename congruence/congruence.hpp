@@ -113,6 +113,76 @@ namespace dimitri {
 //// ----- implementation details ------------------------------------------ ////
 //// ----------------------------------------------------------------------- ////
 
+  // ------------- //
+  // --- Maybe --- //
+  // ------------- //
+  
+  template <typename X>
+    maybe<X>::maybe ()
+      : is_just(false), val()
+    { }
+
+  template <typename X>
+    maybe<X>::maybe (const X& x)
+      : is_just(true), val(x)
+    { }
+
+    template <typename X>
+    maybe<X>::maybe (const maybe& m)
+      : is_just(m.is_just), val(m.val)
+    { }
+
+
+
+  // ------------------ //
+  // --- Union Find --- //
+  // ------------------ //
+
+  union_find_t::union_find_t ()
+    : parent ()
+  { }
+
+  // -- Set partition of [0,n) o be singletons
+  // FIXME necessary?
+  union_find_t::union_find_t (size_t n)
+    : parent (n,0)
+  { for (size_t i = 0; i < n; ++i) parent[i] = i; }
+
+  union_find_t::union_find_t (const union_find_t& c)
+    : parent(c.parent)
+  { }
+
+  // -- true iff m and n are in the same set
+  bool union_find_t::in_same_set (size_t m, size_t n)
+  {
+    return m == n or root_of(m) == root_of(n);
+  }
+
+  // -- union the sets in the partition
+  // axiom: !in_same_set(m,n)
+  void union_find_t::union_sets (size_t m, size_t n)
+  {
+    n = root_of(n);
+    parent[n] = m;
+  }
+
+  // -- return a fresh variable
+  size_t union_find_t::new_free_variable ()
+  {
+    size_t var = parent.size();
+    parent.push_back(var);
+    return var;
+  }
+
+  // -- get the canonical element of the set containing n
+  auto union_find_t::root_of (size_t n) -> size_t
+  {
+    size_t parent_of_n = parent[n];
+    while (n != parent_of_n) {
+      n = parent_of_n;
+      parent_of_n = parent[n]; }
+    return n;
+  }
 }
 
 
