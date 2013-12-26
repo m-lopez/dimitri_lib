@@ -40,6 +40,8 @@ and an associtated integer type <code>Nat</code>
       applied is the same function symbol. The arguments may be different.
 +   <code>num_args(e) -> Nat</code> - the number of arguments applied to this
       function symbol.
++   <code>E < E -> bool</code> - the expression type must be weakly ordered so
+      that <code>std::set</code> can be used to hash expressions
 
 ### Features ###
 
