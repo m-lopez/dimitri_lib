@@ -206,7 +206,7 @@ namespace dimitri {
       : is_just(true), val(x)
     { }
 
-    template <typename X>
+  template <typename X>
     maybe<X>::maybe (const maybe& m)
       : is_just(m.is_just), val(m.val)
     { }
