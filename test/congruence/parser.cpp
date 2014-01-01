@@ -15,11 +15,53 @@
 
 
 #include "parser.hpp"
+#include <iostream>
 
 
 
-parse_t::parser_t (const std::string& str)
-  :src(str)
+expr::expr (const std::string& name)
+  : name(name), args()
+{ }
+
+expr::expr (const std::string& name, const std::vector<expr*>& args)
+  : name(name), args(args)
+{ }
+
+void print_expr (std::ostream& out, expr* e) {
+  out << e->name;
+  if (e->args.empty())
+    return;
+  out << '(';
+  print_expr(out,e->args[0]);
+  for (auto n = 1u; n < e->args.size(); ++n) {
+    out << ',';
+    print_expr(out,e->args[n]); }
+  out << ')';
+}
+
+std::ostream& operator<< (std::ostream& out, expr* e)
+{
+  print_expr(out,e);
+  return out;
+}
+
+std::vector<expr*>& Args::operator() (expr* e)
+{
+  return e->args;
+}
+
+bool Is_same::operator() (expr* e1, expr* e2)
+{
+  return e1->name == e2->name and e1->args.size() == e2->args.size();
+}
+
+std::size_t Num_args::operator() (expr* e)
+{
+  return e->args.size();
+}
+
+parser_t::parser_t ()
+  : src_ptr(nullptr)
 { }
 
 parser_t::~parser_t ()
@@ -27,7 +69,15 @@ parser_t::~parser_t ()
   for (auto e : mem) delete e;
 }
 
-expr* parse_t::parser_expr ()
+expr* parser_t::parse (const std::string& str)
+{
+  src_ptr = new std::istringstream(str);
+  auto e = parse_expr();
+  delete src_ptr;
+  return e;
+}
+
+expr* parser_t::parse_expr ()
 {
   remove_whitespace();
   std::string name(parse_name());
@@ -41,10 +91,10 @@ expr* parse_t::parser_expr ()
   return e;
 }
 
-detail::maybe<std::vector<expr*>> parse_t::parse_params ()
+detail::maybe<std::vector<expr*>> parser_t::parse_params ()
 {
   remove_whitespace();
-  if (src.good() and src.peek() != '(')
+  if (src().good() and src().peek() != '(')
     return {};
   require_character('(');
   detail::maybe<std::vector<expr*>> args(parse_args());
@@ -52,14 +102,14 @@ detail::maybe<std::vector<expr*>> parse_t::parse_params ()
   return args;
 }
 
-std::vector<expr*> parse_t::parse_args ()
+std::vector<expr*> parser_t::parse_args ()
 {
   std::vector<expr*> args;
   try { args.push_back(parse_expr()); }
   catch (...) { return std::vector<expr*>(); }
   remove_whitespace();
-  while (src.peek() == ',') {
-    src.get();
+  while (src().peek() == ',') {
+    src().get();
     args.push_back(parse_expr());
     remove_whitespace();
   }
@@ -70,23 +120,24 @@ std::string parser_t::parse_name ()
 {
   remove_whitespace();
   std::string name;
-  while (src.good()) {
-    char c = src.get();
+  while (src().good()) {
+    char c = src().peek();
     if (is_character(c))
       name.push_back(c);
     else if (is_whitespace(c) or is_symbol(c))
       break;
     else
       throw (std::string("parsing name, but got: ") + c).c_str();
+    src().get();
   }
-  if (name.empty()) throw "expected a name, got come thing else"
+  if (name.empty()) throw "expected a name, got come thing else";
   return name;
 }
 
-void parse_t::remove_whitespace ()
+void parser_t::remove_whitespace ()
 {
-  while (src.good() and is_whitespace(src.peek()))
-    src.get();
+  while (src().good() and is_whitespace(src().peek()))
+    src().get();
 }
 
 bool parser_t::is_whitespace (char c)
@@ -99,9 +150,19 @@ bool parser_t::is_character (char c)
   return (65 <= c and c <= 90) or (97 <= c and c <= 122);
 }
 
+bool parser_t::is_symbol (char c)
+{
+  switch (c) {
+    case '(': case ')': case ',': case '=':
+      return true;
+    default:
+      return false;
+  }
+}
+
 void parser_t::require_character (char c)
 {
-  char got = src.get();
+  char got = src().get();
   if (got == c)
     return;
   std::string err("expected '");
@@ -110,4 +171,9 @@ void parser_t::require_character (char c)
   err += got;
   err += "'\n";
   throw err.c_str();
+}
+
+std::istringstream& parser_t::src ()
+{
+  return *src_ptr;
 }

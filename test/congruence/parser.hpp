@@ -17,16 +17,38 @@
 #ifndef PARSER_HPP
 #define PARSER_HPP
 
+#include <vector>
+#include <string>
+#include <sstream>
+#include <iosfwd>
+
 
 
 // Expression language 
 struct expr {
   expr (const std::string&);
-  expr (const std::string&, const std::vector<expr*>);
-  expr (const std::string&, std::vector<expr*>&&);
+  expr (const std::string&, const std::vector<expr*>&);
   std::string name;
   std::vector<expr*> args;
 };
+
+void print_expr (std::ostream&, expr*);
+
+std::ostream& operator<< (std::ostream&, expr*);
+
+// Expression algebra
+struct Args {
+  std::vector<expr*>& operator() (expr*);
+};
+
+struct Is_same {
+  bool operator() (expr*, expr*);
+};
+
+struct Num_args {
+  std::size_t operator() (expr*);
+};
+
 
 
 namespace detail {
@@ -60,11 +82,12 @@ namespace detail {
 
 
 struct parser_t {
-  parser_t (const std::string&);
+  parser_t ();
   ~parser_t ();
 
+  expr* parse (const std::string&);
   expr* parse_expr ();
-  maybe<std::vector<expr*>> parse_params ();
+  detail::maybe<std::vector<expr*>> parse_params ();
   std::vector<expr*> parse_args ();
   std::string parse_name ();
   void remove_whitespace ();
@@ -73,7 +96,8 @@ struct parser_t {
   bool is_symbol (char);
   void require_character(char);
 
-  std::istringstream src;
+  std::istringstream& src ();
+  std::istringstream* src_ptr;
   std::vector<expr*> mem;
 };
 

@@ -16,10 +16,33 @@
 
 #include <iostream>
 #include "parser.hpp"
+#include "../../congruence/congruence.hpp"
+
+
+using namespace std;
+
+void print_test_funcs (expr* e1, expr* e2)
+{
+  cout << "args:\n";
+  for (auto e : Args()(e1))
+    cout << "  " << e << '\n';
+  cout << e1 << (Is_same()(e1,e2) ? "=" : "/=") << e2 << '\n';
+  cout << "num args: " << Num_args()(e1) << '\n';
+}
+
+using congruence_t = dimitri::congruence_t<expr*, Args, Is_same, Num_args>;
 
 
 
 int main ()
 {
-  retun 0;
+  parser_t parser;
+  auto fa = parser.parse("f(a)");
+  auto ffa = parser.parse("f(f(a))");
+  auto ffffa = parser.parse("f(f(f(f(a))))");
+
+  congruence_t eq;
+  eq.set_congruent(fa,ffa);
+
+  return 0;
 }
