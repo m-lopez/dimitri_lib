@@ -54,6 +54,7 @@ namespace dimitri {
 
 
 
+  struct non_template_t { int eggs () { return 0; } };
   // ------------------ //
   // --- Union Find --- //
   // ------------------ //

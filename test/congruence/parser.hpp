@@ -21,6 +21,7 @@
 #include <string>
 #include <sstream>
 #include <iosfwd>
+//#include "../../congruence/congruence.hpp"
 
 
 
@@ -81,9 +82,10 @@ namespace detail {
 
 
 
-struct parser_t {
-  parser_t ();
-  ~parser_t ();
+// -- Expression Parser -- //
+struct expr_parser_t {
+  expr_parser_t (std::vector<expr*>&);
+  ~expr_parser_t ();
 
   expr* parse (const std::string&);
   expr* parse_expr ();
@@ -98,7 +100,7 @@ struct parser_t {
 
   std::istringstream& src ();
   std::istringstream* src_ptr;
-  std::vector<expr*> mem;
+  std::vector<expr*>& mem;
 };
 
 

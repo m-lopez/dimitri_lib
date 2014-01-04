@@ -60,16 +60,16 @@ std::size_t Num_args::operator() (expr* e)
   return e->args.size();
 }
 
-parser_t::parser_t ()
-  : src_ptr(nullptr)
+expr_parser_t::expr_parser_t (std::vector<expr*>& mem_pool)
+  : src_ptr(nullptr), mem(mem_pool)
 { }
 
-parser_t::~parser_t ()
+expr_parser_t::~expr_parser_t ()
 {
   for (auto e : mem) delete e;
 }
 
-expr* parser_t::parse (const std::string& str)
+expr* expr_parser_t::parse (const std::string& str)
 {
   src_ptr = new std::istringstream(str);
   auto e = parse_expr();
@@ -77,7 +77,7 @@ expr* parser_t::parse (const std::string& str)
   return e;
 }
 
-expr* parser_t::parse_expr ()
+expr* expr_parser_t::parse_expr ()
 {
   remove_whitespace();
   std::string name(parse_name());
@@ -91,7 +91,7 @@ expr* parser_t::parse_expr ()
   return e;
 }
 
-detail::maybe<std::vector<expr*>> parser_t::parse_params ()
+detail::maybe<std::vector<expr*>> expr_parser_t::parse_params ()
 {
   remove_whitespace();
   if (src().good() and src().peek() != '(')
@@ -102,7 +102,7 @@ detail::maybe<std::vector<expr*>> parser_t::parse_params ()
   return args;
 }
 
-std::vector<expr*> parser_t::parse_args ()
+std::vector<expr*> expr_parser_t::parse_args ()
 {
   std::vector<expr*> args;
   try { args.push_back(parse_expr()); }
@@ -116,11 +116,11 @@ std::vector<expr*> parser_t::parse_args ()
   return args;
 }
 
-std::string parser_t::parse_name ()
+std::string expr_parser_t::parse_name ()
 {
   remove_whitespace();
   std::string name;
-  while (src().good()) {
+  while (src().good() and !src().eof()) {
     char c = src().peek();
     if (is_character(c))
       name.push_back(c);
@@ -134,23 +134,23 @@ std::string parser_t::parse_name ()
   return name;
 }
 
-void parser_t::remove_whitespace ()
+void expr_parser_t::remove_whitespace ()
 {
   while (src().good() and is_whitespace(src().peek()))
     src().get();
 }
 
-bool parser_t::is_whitespace (char c)
+bool expr_parser_t::is_whitespace (char c)
 {
   return c == ' ' or c == '\t' or c == '\n';
 }
 
-bool parser_t::is_character (char c)
+bool expr_parser_t::is_character (char c)
 {
   return (65 <= c and c <= 90) or (97 <= c and c <= 122);
 }
 
-bool parser_t::is_symbol (char c)
+bool expr_parser_t::is_symbol (char c)
 {
   switch (c) {
     case '(': case ')': case ',': case '=':
@@ -160,7 +160,7 @@ bool parser_t::is_symbol (char c)
   }
 }
 
-void parser_t::require_character (char c)
+void expr_parser_t::require_character (char c)
 {
   char got = src().get();
   if (got == c)
@@ -173,7 +173,7 @@ void parser_t::require_character (char c)
   throw err.c_str();
 }
 
-std::istringstream& parser_t::src ()
+std::istringstream& expr_parser_t::src ()
 {
   return *src_ptr;
 }
